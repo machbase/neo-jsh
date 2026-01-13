@@ -2,7 +2,6 @@
 
 const process = require('process');
 const parseArgs = require('util/parseArgs');
-const { splitFields } = require('util');
 const { Client } = require('/usr/lib/machcli');
 const pretty = require('/usr/lib/pretty');
 
@@ -55,28 +54,30 @@ try {
     conn = db.connect();
     rows = conn.query(sqlText);
 
+    let tick = process.now();
     let box = pretty.Table(config);
-    box.appendHeader(rows.columnNames());
+    box.appendHeader(rows.columnNames);
+    box.setColumnTypes(rows.columnTypes);
 
-    let finalRender = true;
     for (const row of rows) {
         // spread row values
-        box.appendRow(box.row(...row));
+        box.append([...row]);
         if (box.requirePageRender()) {
             // render page
             console.println(box.render());
             // wait for user input to continue if pause is enabled
             if (!box.pauseAndWait()) {
-                finalRender = false;
                 break;
             }
         }
     }
     // set footer message
     box.setCaption(rows.message)
-    // render box
-    if (finalRender) {
-        console.println(box.render());
+    // render remaining rows
+    console.println(box.close());
+    // print elapsed time
+    if (config.timing) {
+        console.println(`Elapsed time: ${pretty.Durations(process.now().unixNano() - tick.unixNano())}`);
     }
 } catch (err) {
     console.println("Error: ", err.message);

@@ -11,6 +11,7 @@ const defaultTableConfig = {
     precision: -1,
     format: 'box',
     rownum: true,
+    nullValue: 'NULL',
 }
 
 function Table(config) {
@@ -20,7 +21,7 @@ function Table(config) {
 }
 
 const TableArgOptions = {
-    format: { type: 'string', short: 'f', description: "output format (box, csv, json, ndjson)", default: 'box' },
+    format: { type: 'string', short: 'f', description: "output format (box, csv, tsv, json, ndjson)", default: 'box' },
     boxStyle: { type: 'string', description: "box style (simple, bold, double, light, round, colored-bright, colored-dark)", default: 'light' },
     rownum: { type: 'boolean', description: "show row numbers", default: true },
     timeformat: { type: 'string', short: 't', description: "time format [ns|ms|s|<timeformat>]", default: 'default' },
@@ -29,6 +30,7 @@ const TableArgOptions = {
     header: { type: 'boolean', description: "print header", default: true },
     footer: { type: 'boolean', description: "print footer", default: true },
     pause: { type: 'boolean', description: "pause for the screen paging", default: true },
+    nullValue: { type: 'string', description: "string to represent null values", default: 'NULL' },
 }
 
 module.exports = {

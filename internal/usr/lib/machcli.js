@@ -72,15 +72,13 @@ class Rows {
         this.ctx = ctx;
         this.rows = dbRows;
         this.cols = dbRows.columns();
-        this.names = this.cols.names();
+        this.columnNames = this.cols.names();
+        this.columnTypes = this.cols.dataTypes();
         this.rownum = 0;
         this.message = dbRows.message();
     }
     close() {
         this.rows.close();
-    }
-    columnNames() {
-        return this.names;
     }
     [Symbol.iterator]() {
         return {
