@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/dop251/goja"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -155,34 +156,36 @@ func Durations(v time.Duration) string {
 }
 
 type TableOption struct {
-	BoxStyle   string `json:"boxStyle"`
-	Timeformat string `json:"timeformat"`
-	Tz         string `json:"tz"`
-	Precision  int    `json:"precision"`
-	Format     string `json:"format"`
-	Header     bool   `json:"header"`
-	Footer     bool   `json:"footer"`
-	Pause      bool   `json:"pause"`
-	Rownum     bool   `json:"rownum"`
-	NullValue  string `json:"nullValue"`
+	BoxStyle     string `json:"boxStyle"`
+	Timeformat   string `json:"timeformat"`
+	Tz           string `json:"tz"`
+	Precision    int    `json:"precision"`
+	Format       string `json:"format"`
+	Header       bool   `json:"header"`
+	Footer       bool   `json:"footer"`
+	Pause        bool   `json:"pause"`
+	Rownum       bool   `json:"rownum"`
+	NullValue    string `json:"nullValue"`
+	StringEscape bool   `json:"stringEscape"`
 }
 
 type TableWriter struct {
 	table.Writer
-	format      string
-	timeformat  string
-	tz          *time.Location
-	precision   int
-	headerRow   table.Row
-	header      bool
-	footer      bool
-	pause       bool
-	rownum      bool
-	rowCount    int64
-	nullValue   string
-	rawRows     []table.Row // to store raw rows for JSON, NDJSON rendering
-	columnTypes []string    // to store column types for JSON rendering
-	renderCount int         // count of render calls
+	format       string
+	timeformat   string
+	tz           *time.Location
+	precision    int
+	headerRow    table.Row
+	header       bool
+	footer       bool
+	pause        bool
+	stringEscape bool
+	rownum       bool
+	rowCount     int64
+	nullValue    string
+	rawRows      []table.Row // to store raw rows for JSON, NDJSON rendering
+	columnTypes  []string    // to store column types for JSON rendering
+	renderCount  int         // count of render calls
 
 	nextPauseRow         int64
 	pageHeight           int
@@ -192,15 +195,16 @@ type TableWriter struct {
 
 func Table(opt TableOption) table.Writer {
 	ret := &TableWriter{
-		Writer:    table.NewWriter(),
-		tz:        time.Local,
-		precision: opt.Precision,
-		format:    strings.ToUpper(opt.Format),
-		header:    opt.Header,
-		footer:    opt.Footer,
-		pause:     opt.Pause,
-		rownum:    opt.Rownum,
-		nullValue: opt.NullValue,
+		Writer:       table.NewWriter(),
+		tz:           time.Local,
+		precision:    opt.Precision,
+		format:       strings.ToUpper(opt.Format),
+		header:       opt.Header,
+		footer:       opt.Footer,
+		pause:        opt.Pause,
+		rownum:       opt.Rownum,
+		nullValue:    opt.NullValue,
+		stringEscape: opt.StringEscape,
 	}
 	ret.SetBoxStyle(opt.BoxStyle)
 	ret.SetFormat(opt.Format)
@@ -346,6 +350,10 @@ func (tw *TableWriter) SetAutoIndex(autoIndex bool) {
 	tw.Writer.SetAutoIndex(false)
 }
 
+func (tw *TableWriter) SetStringEscape(escape bool) {
+	tw.stringEscape = escape
+}
+
 func (tw *TableWriter) AppendHeader(v table.Row, configs ...table.RowConfig) {
 	tw.headerRow = v // store header row
 	if !tw.header {
@@ -451,6 +459,20 @@ func (tw *TableWriter) Row(values ...interface{}) table.Row {
 			if tw.precision >= 0 {
 				factor := math.Pow(10, float64(tw.precision))
 				values[i] = math.Round(val*factor) / factor
+			}
+		case string:
+			if tw.stringEscape {
+				var result strings.Builder
+				for _, r := range val {
+					if unicode.IsPrint(r) {
+						result.WriteRune(r)
+					} else {
+						result.WriteString(fmt.Sprintf("\\u%04x", r))
+					}
+				}
+				values[i] = result.String()
+			} else {
+				values[i] = val
 			}
 		default:
 			values[i] = value

@@ -12,6 +12,7 @@ const defaultTableConfig = {
     format: 'box',
     rownum: true,
     nullValue: 'NULL',
+    stringEscape: false,
 }
 
 function Table(config) {

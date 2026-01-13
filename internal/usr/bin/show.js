@@ -1134,6 +1134,7 @@ function showTags(config, args) {
         colsRows = null;
 
         let box = pretty.Table(config);
+        box.setStringEscape(true);
         if (hasSummarized) {
             box.appendHeader(["_ID", "NAME", "ROW_COUNT", "MIN_TIME", "MAX_TIME", "RECENT_ROW_TIME", "MIN_VALUE", "MIN_VALUE_TIME", "MAX_VALUE", "MAX_VALUE_TIME"]);
         } else {
