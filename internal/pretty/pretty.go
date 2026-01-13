@@ -290,7 +290,7 @@ func (tw *TableWriter) SetBoxStyle(style string) {
 		tw.SetStyle(s)
 		tw.pageHeightSpaceLines = o.pageSpaceLines
 	} else {
-		tw.SetStyle(table.StyleDefault)
+		tw.SetStyle(table.StyleLight)
 		tw.pageHeightSpaceLines = 4
 	}
 }
